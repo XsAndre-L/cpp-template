@@ -1,0 +1,5 @@
+{
+  "appName": "TestApp",
+  "appEntry": "App/main.cpp",
+  "buildDir": "build"
+}

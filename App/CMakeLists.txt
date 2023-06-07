@@ -1,3 +1,0 @@
-set(MAIN_SCOPE
-  PARENT_SCOPE
-)

@@ -1,33 +1,39 @@
-#include <iostream>
+// #include <iostream>
 
-#include "util.h"
-
-void println(const std::string &str)
-{
-    std::cout << GREEN << str << RESET << std::endl;
-}
+#include "util/util.h"
+#include "commands/commands.hpp"
 
 int main()
 {
+    // Main Loop runs program
     while (true)
     {
-        std::string command = getCommand();
+        // Get command from user
+        std::string cmd = getCommand();
 
-        if (command == "exit")
+        // Check important functions
+        if (cmd == "exit")
             break;
 
-        println(command);
+        if (cmd == "help")
+        {
+            help_cmd_func();
+            continue;
+        }
+
+        // Find The Command
+        exec_cmd(cmd);
     }
 
-    try
-    {
-        // Your code here
-        println("Hello World!");
-        std::cin.get();
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return 1;
-    }
+    // try
+    // {
+    //     // Your code here
+    //     println("Hello World!");
+    //     std::cin.get();
+    // }
+    // catch (const std::exception &e)
+    // {
+    //     std::cerr << "Exception: " << e.what() << std::endl;
+    //     return 1;
+    // }
 }
