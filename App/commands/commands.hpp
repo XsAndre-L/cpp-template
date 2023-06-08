@@ -4,19 +4,26 @@
 #include <functional>
 #include <array>
 
-#include "../util/util.h"
+#include "../util/util.hpp"
 #include "objects.hpp"
 
 // COMMANDS
-#include "test_cmd/test_cmd.hpp"
+#include "runtime/test_cmd.hpp"
+#include "runtime/command_2.hpp"
 
-std::array<Command, 1> commands = {test_cmd::s_test_cmd};
+std::string getCommand()
+{
+  std::string command;
+  std::cout << BLUE << "> " << RESET;
+  std::cin >> command;
+  return command;
+}
+
+std::array<Command, 2> commands = {test_cmd::s_test_cmd, command_2::s_command_2_cmd};
 
 void help_cmd_func()
 {
-  print("-------- ", RED);
-  print("HELP", RESET);
-  print(" --------\n", RED);
+  print(red("----------") + "HELP" + red("----------\n"));
   for (size_t i = 0; i < commands.size(); i++)
   {
     const Command current = commands[i];
@@ -24,22 +31,50 @@ void help_cmd_func()
     print(current.cmd + " - ", GREEN);
     print(current.name + " ");
     print(current.description);
-    println("Aliases: " + current.alias);
+    std::string aliases;
+    for (const auto &alias : current.aliases)
+    {
+      aliases += alias + " ";
+    }
+    println();
+    println("Aliases: " + aliases, YELLOW);
     println();
     /* code */
   }
 }
 
-void exec_cmd(const std::string &cmd)
+bool exec_cmd(const std::string &input)
 {
+  const std::string checked_input = toLowerCase(input);
+
+  // Check important functions
+  if (checked_input == "exit")
+    return EXIT;
+
+  if (checked_input == "help")
+  {
+    help_cmd_func();
+    return CONTINUE;
+  }
+
   for (const auto &command : commands)
   {
-    if (cmd == command.cmd || cmd == command.alias)
+    // Check if input match command
+    if (checked_input == command.cmd)
     {
       command.action();
-      return;
+      return CONTINUE;
     }
 
-    println("Command not found!", RED);
+    for (const auto &alias : command.aliases)
+    {
+      if (checked_input == alias)
+      {
+        command.action();
+        return CONTINUE;
+      }
+    }
   }
+  println("Command not found!", RED);
+  return CONTINUE;
 }

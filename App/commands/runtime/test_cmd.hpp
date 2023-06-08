@@ -1,8 +1,7 @@
 #pragma once
 
 // #include <functional>
-
-#include "../../util/util.h"
+#include "../../util/util.hpp"
 #include "../objects.hpp"
 
 void test_cmd_func()
@@ -14,8 +13,9 @@ namespace test_cmd
 {
   Command s_test_cmd = {
       "test",
-      "t",
       "Test Command",
       "This is a test command.",
-      test_cmd_func};
+      test_cmd_func,
+      {"t"},
+  };
 };

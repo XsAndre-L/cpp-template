@@ -78,6 +78,7 @@
     "span": "cpp",
     "unordered_map": "cpp",
     "valarray": "cpp",
-    "xtree": "cpp"
+    "xtree": "cpp",
+    "codecvt": "cpp"
   }
 }

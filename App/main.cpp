@@ -1,39 +1,33 @@
 // #include <iostream>
 
-#include "util/util.h"
+#include "util/util.hpp"
 #include "commands/commands.hpp"
 
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc > 1)
+    {
+        // std::cout << "Number of arguments: " << argc << std::endl;
+        std::cout << "Arguments: " << argv[1] << std::endl;
+        // for (int i = 0; i < argc; ++i)
+        // {
+        //     std::cout << "Argument " << i << ": " << argv[i] << std::endl;
+        // }
+        return 0;
+    }
+
     // Main Loop runs program
     while (true)
     {
         // Get command from user
         std::string cmd = getCommand();
 
-        // Check important functions
-        if (cmd == "exit")
+        // Find The Command and execute it
+        if (exec_cmd(cmd) == EXIT)
             break;
 
-        if (cmd == "help")
-        {
-            help_cmd_func();
-            continue;
-        }
-
-        // Find The Command
-        exec_cmd(cmd);
+        println();
     }
 
-    // try
-    // {
-    //     // Your code here
-    //     println("Hello World!");
-    //     std::cin.get();
-    // }
-    // catch (const std::exception &e)
-    // {
-    //     std::cerr << "Exception: " << e.what() << std::endl;
-    //     return 1;
-    // }
+    return 0;
 }

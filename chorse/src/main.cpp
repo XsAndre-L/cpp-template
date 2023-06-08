@@ -4,7 +4,6 @@
 #include <vector>
 #include <unordered_set>
 #include <filesystem>
-
 #include <cstdlib>
 
 #include "json.hpp"
@@ -25,27 +24,24 @@ void processFiles(const std::string &filePath, const std::string &buildDir, std:
   std::string line;
   while (std::getline(inputFile, line))
   {
-    std::cout << "Line: " << line << std::endl;
     std::istringstream iss(line);
     std::string token;
     if (iss >> token && token == "#include")
     {
-      std::cout << "Found include" << line << std::endl;
       std::string includePath;
       if (iss >> includePath)
       {
-        if (includePath.front() == '"' && includePath.back() == '"')
-          includePath = includePath.substr(1, includePath.size() - 2);
-
         if (includePath.front() == '<' && includePath.back() == '>')
           continue; // Ignore system includes
 
-        std::cout << "IS HERE " << includePath << std::endl;
-
-        // ../App/main.cpp   util.h
+        if (includePath.front() == '"' && includePath.back() == '"')
+        {
+          std::cout << "Found: " << line << std::endl;
+          includePath = includePath.substr(1, includePath.size() - 2);
+        }
 
         std::string absolutePath = filePath.substr(0, filePath.size() - 9) + '/' + includePath;
-        // std::cout << "ABSOLUTE PATH " << absolutePath << std::endl;
+
         if (fs::exists(absolutePath) && includedFiles.count(absolutePath) == 0)
         {
           includedFiles.insert(absolutePath);
@@ -67,13 +63,13 @@ struct Configuration
   // std::string linkerFlags;
 };
 
-void getConfiguration(Configuration &configuration)
+void getConfiguration(Configuration &config)
 {
 
   std::ifstream file(CONFIG_FILE);
   if (!file.is_open())
   {
-    std::cerr << "Failed to find C-Horse configuration. (.chorse filse is missing)" << std::endl;
+    std::cerr << "Failed to find C-Horse config. (.chorse filse is missing)" << std::endl;
   }
 
   std::string jsonString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -88,13 +84,9 @@ void getConfiguration(Configuration &configuration)
     std::cerr << "Failed to parse JSON: " << e.what() << std::endl;
   }
 
-  configuration.appName = jsonData["appName"];
-  configuration.mainFilePath = jsonData["appEntry"];
-  configuration.buildDir = jsonData["buildDir"];
-  // configuration.compiler = jsonData["compiler"];
-  // configuration.compilerFlags = jsonData["compilerFlags"];
-  // configuration.linker = jsonData["linker"];
-  // configuration.linkerFlags = jsonData["linkerFlags"];
+  config.appName = jsonData["appName"];
+  config.mainFilePath = jsonData["appEntry"];
+  config.buildDir = jsonData["buildDir"];
 }
 
 int main(int argc, char *argv[])
@@ -106,41 +98,60 @@ int main(int argc, char *argv[])
     std::cout << "Argument " << i << ": " << argv[i] << std::endl;
   }
 
-  Configuration configuration;
-  getConfiguration(configuration);
+  Configuration config;
 
-  // std::cout << "Main file path: --------------- " << configuration.mainFilePath << std::endl;
-
-  // std::string mainFilePath;
-  // std::string buildDir;
-
-  // std::cout << "Enter the relative path to the main.cpp file: ";
-  // std::cin >> mainFilePath;
-
-  // std::cout << "Enter the build directory: ";
-  // std::cin >> buildDir;
+  try
+  {
+    getConfiguration(config);
+  }
+  catch (const std::exception &e)
+  {
+    std::cerr << e.what() << '\n';
+    return 1;
+  }
 
   std::unordered_set<std::string> includedFiles;
 
-  processFiles(configuration.mainFilePath, configuration.buildDir, includedFiles);
+  processFiles(config.mainFilePath, config.buildDir, includedFiles);
 
   std::ostringstream compileCommand;
   compileCommand << "g++ -std=c++17 -Wall"
-                 << " " << configuration.mainFilePath;
+                 << " " << config.mainFilePath;
 
-  std::cout << "Included files: " << includedFiles.size() << std::endl;
+  std::cout << "Included cpp files: " << includedFiles.size() << std::endl;
 
   for (const auto &filePath : includedFiles)
   {
-    if (fs::path(filePath).extension() == ".cpp" || fs::path(filePath).extension() == ".h")
+    if (fs::path(filePath).extension() == ".cpp")
+    {
+      compileCommand << " " << filePath;
+      continue;
+    }
+
+    if (fs::path(filePath).extension() == ".hpp")
+    {
+      std::string formattedPath = filePath.substr(0, filePath.size() - 4);
+      formattedPath += ".cpp";
+
+      if (fs::exists(formattedPath))
+        compileCommand << " " << formattedPath;
+
+      continue;
+    }
+
+    if (fs::path(filePath).extension() == ".h")
     {
       std::string formattedPath = filePath.substr(0, filePath.size() - 2);
       formattedPath += ".cpp";
-      compileCommand << " " << formattedPath;
+
+      if (fs::exists(formattedPath))
+        compileCommand << " " << formattedPath;
+
+      continue;
     }
   }
 
-  compileCommand << " -o " << configuration.buildDir << "/" << configuration.appName;
+  compileCommand << " -o " << config.buildDir << "/" << config.appName;
 
   std::cout << "Compilation command: " << compileCommand.str() << std::endl;
 
