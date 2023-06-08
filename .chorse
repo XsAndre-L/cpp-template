@@ -1,5 +1,10 @@
 {
   "appName": "TestApp",
   "appEntry": "App/main.cpp",
-  "buildDir": "build"
+  "buildDir": "build",
+  "compiler": {
+    "name": "g++",
+    "cppVersion": "c++20",
+    "cVersion": "c17"
+  }
 }

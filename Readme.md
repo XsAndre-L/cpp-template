@@ -14,3 +14,9 @@ Build chorse
 
 - cd ./chorse
 - make
+
+#### Commands
+
+chorse build
+
+- build a cpp project if the .chorse config is provided

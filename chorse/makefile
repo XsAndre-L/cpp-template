@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -std=c++17 -Wall
+CFLAGS = -std=c++20 -Wall
 
 SRCDIR = src
 BINDIR = build
@@ -12,7 +12,7 @@ TARGET = chorse
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $(BINDIR)/$@
 
 $(BINDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@

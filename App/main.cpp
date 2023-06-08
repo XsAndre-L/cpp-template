@@ -1,5 +1,3 @@
-// #include <iostream>
-
 #include "util/util.hpp"
 #include "commands/commands.hpp"
 

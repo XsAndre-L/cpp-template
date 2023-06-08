@@ -52,18 +52,17 @@ void processFiles(const std::string &filePath, const std::string &buildDir, std:
   }
 }
 
-struct Configuration
+struct CHorseConfig
 {
   std::string appName;
   std::string mainFilePath;
   std::string buildDir;
-  // std::string compiler;
-  // std::string compilerFlags;
-  // std::string linker;
-  // std::string linkerFlags;
+  std::string compiler;
+  std::string cppVersion;
+  std::string cVersion;
 };
 
-void getConfiguration(Configuration &config)
+void getConfiguration(CHorseConfig &config)
 {
 
   std::ifstream file(CONFIG_FILE);
@@ -87,35 +86,20 @@ void getConfiguration(Configuration &config)
   config.appName = jsonData["appName"];
   config.mainFilePath = jsonData["appEntry"];
   config.buildDir = jsonData["buildDir"];
+  config.compiler = jsonData["compiler"]["name"];
+  config.cppVersion = jsonData["compiler"]["cppVersion"];
+  config.cVersion = jsonData["compiler"]["cVersion"];
 }
 
-int main(int argc, char *argv[])
+void buildCHorse(CHorseConfig &config)
 {
-  std::cout << "Number of arguments: " << argc << std::endl;
-
-  for (int i = 0; i < argc; ++i)
-  {
-    std::cout << "Argument " << i << ": " << argv[i] << std::endl;
-  }
-
-  Configuration config;
-
-  try
-  {
-    getConfiguration(config);
-  }
-  catch (const std::exception &e)
-  {
-    std::cerr << e.what() << '\n';
-    return 1;
-  }
-
   std::unordered_set<std::string> includedFiles;
 
   processFiles(config.mainFilePath, config.buildDir, includedFiles);
 
+  // the compiler command gets compiler NAME and CPP version from config
   std::ostringstream compileCommand;
-  compileCommand << "g++ -std=c++17 -Wall"
+  compileCommand << config.compiler << " -std=" << config.cppVersion << " -Wall"
                  << " " << config.mainFilePath;
 
   std::cout << "Included cpp files: " << includedFiles.size() << std::endl;
@@ -156,6 +140,37 @@ int main(int argc, char *argv[])
   std::cout << "Compilation command: " << compileCommand.str() << std::endl;
 
   std::system(compileCommand.str().c_str());
+}
+
+// Entry point
+int main(int argc, char *argv[])
+{
+  // std::cout << "Number of arguments: " << argc << std::endl;
+
+  // for (int i = 0; i < argc; ++i)
+  // {
+  //   std::cout << "Argument " << i << ": " << argv[i] << std::endl;
+  // }
+
+  CHorseConfig config;
+
+  if (argc > 1) // argument count greater than 1
+  {
+    try
+    {
+      getConfiguration(config);
+    }
+    catch (const std::exception &e) // CONFIG_FILE not found
+    {
+      std::cerr << e.what() << '\n';
+      return 1;
+    }
+
+    if (std::string(argv[1]) == "build")
+    {
+      buildCHorse(config);
+    }
+  }
 
   return 0;
 }
